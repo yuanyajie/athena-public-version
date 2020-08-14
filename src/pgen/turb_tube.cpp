@@ -242,7 +242,7 @@ Real apJ1(const Real x) {
 //  Az are functions of x and y alone.
 
 Real A1(const Real x1, const Real x2, const Real x3) {
-  real R = std::sqrt(x1*x1+x2*x2);
+  Real R = std::sqrt(x1*x1+x2*x2);
   Real sin_ph = x2/R;
   if (R<=R0)
     return -b0*sin_ph/lambda*R0/j1zero*apJ1(lambda*R/R0*j1zero);
@@ -257,7 +257,7 @@ Real A1(const Real x1, const Real x2, const Real x3) {
 //  \brief A2: 2-component of vector potential
 
 Real A2(const Real x1, const Real x2, const Real x3) {
-  real R = std::sqrt(x1*x1+x2*x2);
+  Real R = std::sqrt(x1*x1+x2*x2);
   Real cos_ph = x1/R;
   if (R<=R0)
     return b0*cos_ph/lambda*R0/j1zero*apJ1(lambda*R/R0*j1zero);
@@ -272,7 +272,7 @@ Real A2(const Real x1, const Real x2, const Real x3) {
 //  \brief A3: 3-component of vector potential
 
 Real A3(const Real x1, const Real x2, const Real x3) {
-  real R = std::sqrt(x1*x1+x2*x2);
+  Real R = std::sqrt(x1*x1+x2*x2);
 
   if (R<R0)
     return b0*apJ0(lambda*R/R0*j1zero)/lambda*R0/j1zero;
