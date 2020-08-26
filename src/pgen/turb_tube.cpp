@@ -41,7 +41,7 @@ std::int64_t rseed; // seed for turbulence power spectrum
 namespace {
 // Parameters which define initial solution -- made global so that they can be shared
 // with functions A1,2,3 which compute vector potentials
-Real R0, b0;
+Real R0, b0, lambda;
 Real j1zero=3.83170597021;
 
 // functions to compute vector potential to initialize the solution
@@ -60,6 +60,7 @@ Real apJ1(const Real x);
 void Mesh::InitUserMeshData(ParameterInput *pin) {
   R0 = pin->GetOrAddReal("problem","R0",1.0);
   b0 = pin->GetOrAddReal("problem","b0",1.0);
+  lambda = pin->GetOrAddReal("problem","lambda",j1zero);
 
   if (SELF_GRAVITY_ENABLED) {
     Real four_pi_G = pin->GetReal("problem","four_pi_G");
@@ -244,9 +245,9 @@ Real A1(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
   Real sin_ph = x2/R;
   if (R<=R0)
-    return -b0*sin_ph*R0/j1zero*apJ1(R/R0*j1zero);
+    return -b0*sin_ph*R0/lambda*apJ1(R/R0*lambda);
   else {
-    Real Bz0 = apJ0(j1zero);
+    Real Bz0 = apJ0(lambda);
     return -b0*sin_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R);
   }
 }
@@ -259,9 +260,9 @@ Real A2(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
   Real cos_ph = x1/R;
   if (R<=R0)
-    return b0*cos_ph*R0/j1zero*apJ1(R/R0*j1zero);
+    return b0*cos_ph*R0/lambda*apJ1(R/R0*lambda);
   else {
-    Real Bz0 = apJ0(j1zero);
+    Real Bz0 = apJ0(lambda);
     return b0*cos_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R);
   }
 }
@@ -274,8 +275,10 @@ Real A3(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
 
   if (R<R0)
-    return b0*apJ0(R/R0*j1zero)*R0/j1zero;
-  else
-    return b0*apJ0(j1zero)*R0/j1zero;
+    return b0*apJ0(R/R0*lambda)*R0/lambda;
+  else {
+    Real Bph0 = apJ1(lambda);
+    return b0*(apJ0(lambda)*R0/lambda-Bph0*std::log(R/R0));
+  }
 }
 } // namespace
