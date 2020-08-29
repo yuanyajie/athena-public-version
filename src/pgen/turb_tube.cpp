@@ -248,7 +248,7 @@ Real A1(const Real x1, const Real x2, const Real x3) {
     return -b0*sin_ph*R0/lambda*apJ1(R/R0*lambda);
   else {
     Real Bz0 = apJ0(lambda);
-    return -b0*sin_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda));
+    return -b0*sin_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
   }
 }
 
@@ -263,7 +263,7 @@ Real A2(const Real x1, const Real x2, const Real x3) {
     return b0*cos_ph*R0/lambda*apJ1(R/R0*lambda);
   else {
     Real Bz0 = apJ0(lambda);
-    return b0*cos_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda));
+    return b0*cos_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
   }
 }
 
