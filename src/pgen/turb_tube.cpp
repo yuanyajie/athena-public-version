@@ -278,7 +278,7 @@ Real A3(const Real x1, const Real x2, const Real x3) {
     return b0*apJ0(R/R0*lambda)*R0/lambda;
   else {
     Real Bph0 = apJ1(lambda);
-    return b0*(apJ0(lambda)*R0/lambda-Bph0*std::log(R/R0));
+    return b0*(apJ0(lambda)*R0/lambda-Bph0*R0*std::log(R/R0));
   }
 }
 } // namespace
