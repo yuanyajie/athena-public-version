@@ -101,6 +101,9 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   a2.NewAthenaArray(nx3, nx2, nx1);
   a3.NewAthenaArray(nx3, nx2, nx1);
 
+  Real gm1 = peos->GetGamma() - 1.0;
+  Real p0 = 1.0;
+
   int level = loc.level;
   // Initialize components of the vector potential
   if (block_size.nx3 > 1) {
@@ -210,7 +213,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         phydro->u(IM3,k,j,i) = 0.0;
 
         if (NON_BAROTROPIC_EOS) {
-          phydro->u(IEN,k,j,i) = 1.0;
+          phydro->u(IEN,k,j,i) = p0/gm1+
+              0.5*(SQR(0.5*(pfield->b.x1f(k,j,i) + pfield->b.x1f(k,j,i+1))) +
+                   SQR(0.5*(pfield->b.x2f(k,j,i) + pfield->b.x2f(k,j+1,i))) +
+                   SQR(0.5*(pfield->b.x3f(k,j,i) + pfield->b.x3f(k+1,j,i)))) + (0.5)*
+              (SQR(phydro->u(IM1,k,j,i)) + SQR(phydro->u(IM2,k,j,i))
+               + SQR(phydro->u(IM3,k,j,i)))/phydro->u(IDN,k,j,i);
         }
       }
     }
