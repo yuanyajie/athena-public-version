@@ -41,7 +41,7 @@ std::int64_t rseed; // seed for turbulence power spectrum
 namespace {
 // Parameters which define initial solution -- made global so that they can be shared
 // with functions A1,2,3 which compute vector potentials
-Real R0, b0, lambda;
+Real R0, b0, lambda, pitch;
 Real j1zero=3.83170597021;
 int tube_form;
 Real tiny=1.0e-6;
@@ -64,6 +64,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   R0 = pin->GetOrAddReal("problem","R0",1.0);
   b0 = pin->GetOrAddReal("problem","b0",1.0);
   lambda = pin->GetOrAddReal("problem","lambda",j1zero);
+  pitch = pin->GetOrAddReal("problem","pitch",0.0);
   tube_form = pin->GetInteger("problem","tube_form");
 
   if (SELF_GRAVITY_ENABLED) {
@@ -107,6 +108,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   Real gm1 = peos->GetGamma() - 1.0;
   Real p0 = 1.0;
+  Real pp;
 
   int level = loc.level;
   // Initialize components of the vector potential
@@ -217,7 +219,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         phydro->u(IM3,k,j,i) = 0.0;
 
         if (NON_BAROTROPIC_EOS) {
-          phydro->u(IEN,k,j,i) = p0/gm1+
+          if (tube_form==3) {
+            Real R=std::sqrt(SQR(pcoord->x1v(i))+SQR(pcoord->x2v(j)));
+            pp=0.5/SQR(1+R*R);
+          }
+          else pp=0.0;
+          phydro->u(IEN,k,j,i) = (p0+pp)/gm1+
               0.5*(SQR(0.5*(pfield->b.x1f(k,j,i) + pfield->b.x1f(k,j,i+1))) +
                    SQR(0.5*(pfield->b.x2f(k,j,i) + pfield->b.x2f(k,j+1,i))) +
                    SQR(0.5*(pfield->b.x3f(k,j,i) + pfield->b.x3f(k+1,j,i)))) + (0.5)*
@@ -258,7 +265,9 @@ Real Aph(const Real R) {
       return (0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
     }
   }
-  else if (tube_form==2)
+  else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
+    return std::log(1+R*R)/2.0/std::max(R,tiny);
+  else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
     return std::log(1+R*R)/2.0/std::max(R,tiny);
   else 
     return 0.0;
@@ -291,7 +300,7 @@ Real A2(const Real x1, const Real x2, const Real x3) {
 Real A3(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
 
-  if (tube_form==1) {
+  if (tube_form==1) { // Bessel function flux tube
     if (R<R0)
       return b0*apJ0(R/R0*lambda)*R0/lambda;
     else {
@@ -299,8 +308,10 @@ Real A3(const Real x1, const Real x2, const Real x3) {
       return b0*(apJ0(lambda)*R0/lambda-Bph0*R0*std::log(R/R0));
     }
   }
-  else if (tube_form==2)
+  else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
     return -b0*std::log(1+R*R)/2.0;
+  else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
+    return b0*pitch*0.5*R;
   else
     return 0.0;
 }
