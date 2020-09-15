@@ -43,11 +43,14 @@ namespace {
 // with functions A1,2,3 which compute vector potentials
 Real R0, b0, lambda;
 Real j1zero=3.83170597021;
+int tube_form;
+Real tiny=1.0e-6;
 
 // functions to compute vector potential to initialize the solution
 Real A1(const Real x1, const Real x2, const Real x3);
 Real A2(const Real x1, const Real x2, const Real x3);
 Real A3(const Real x1, const Real x2, const Real x3);
+Real Aph(const Real R);
 
 Real apJ0(const Real x);
 Real apJ1(const Real x);
@@ -61,6 +64,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   R0 = pin->GetOrAddReal("problem","R0",1.0);
   b0 = pin->GetOrAddReal("problem","b0",1.0);
   lambda = pin->GetOrAddReal("problem","lambda",j1zero);
+  tube_form = pin->GetInteger("problem","tube_form");
 
   if (SELF_GRAVITY_ENABLED) {
     Real four_pi_G = pin->GetReal("problem","four_pi_G");
@@ -245,6 +249,21 @@ Real apJ1(const Real x) {
   return std::sin(x/2.0)/6.0+std::sin(x*std::sqrt(3.0)/2.0)/2.0/std::sqrt(3.0)+std::sin(x)/6.0;
 }
 
+Real Aph(const Real R) {
+  if (tube_form==1) { // Bessel function flux tube
+    if (R<=R0)
+      return R0/lambda*apJ1(R/R0*lambda);
+    else {
+      Real Bz0 = apJ0(lambda);
+      return (0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
+    }
+  }
+  else if (tube_form==2)
+    return std::log(1+R*R)/2.0/std::max(R,tiny);
+  else 
+    return 0.0;
+}
+
 //! \fn Real A1(const Real x1,const Real x2,const Real x3)
 //  \brief A1: 1-component of vector potential, using a gauge such that Ax = 0, and Ay,
 //  Az are functions of x and y alone.
@@ -252,12 +271,7 @@ Real apJ1(const Real x) {
 Real A1(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
   Real sin_ph = x2/R;
-  if (R<=R0)
-    return -b0*sin_ph*R0/lambda*apJ1(R/R0*lambda);
-  else {
-    Real Bz0 = apJ0(lambda);
-    return -b0*sin_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
-  }
+  return -b0*sin_ph*Aph(R);
 }
 
 //----------------------------------------------------------------------------------------
@@ -267,12 +281,7 @@ Real A1(const Real x1, const Real x2, const Real x3) {
 Real A2(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
   Real cos_ph = x1/R;
-  if (R<=R0)
-    return b0*cos_ph*R0/lambda*apJ1(R/R0*lambda);
-  else {
-    Real Bz0 = apJ0(lambda);
-    return b0*cos_ph*(0.5*R*Bz0-R0*R0*Bz0/2.0/R+R0/lambda*apJ1(lambda)*R0/R);
-  }
+  return b0*cos_ph*Aph(R);
 }
 
 //----------------------------------------------------------------------------------------
@@ -282,11 +291,17 @@ Real A2(const Real x1, const Real x2, const Real x3) {
 Real A3(const Real x1, const Real x2, const Real x3) {
   Real R = std::sqrt(x1*x1+x2*x2);
 
-  if (R<R0)
-    return b0*apJ0(R/R0*lambda)*R0/lambda;
-  else {
-    Real Bph0 = apJ1(lambda);
-    return b0*(apJ0(lambda)*R0/lambda-Bph0*R0*std::log(R/R0));
+  if (tube_form==1) {
+    if (R<R0)
+      return b0*apJ0(R/R0*lambda)*R0/lambda;
+    else {
+      Real Bph0 = apJ1(lambda);
+      return b0*(apJ0(lambda)*R0/lambda-Bph0*R0*std::log(R/R0));
+    }
   }
+  else if (tube_form==2)
+    return -b0*std::log(1+R*R)/2.0;
+  else
+    return 0.0;
 }
 } // namespace
