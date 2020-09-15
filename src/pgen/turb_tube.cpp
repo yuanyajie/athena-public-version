@@ -268,7 +268,7 @@ Real Aph(const Real R) {
   else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
     return std::log(1+R*R)/2.0/std::max(R,tiny);
   else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
-    return std::log(1+R*R)/2.0/std::max(R,tiny);
+    return 0.5*R*pitch;
   else 
     return 0.0;
 }
@@ -311,7 +311,7 @@ Real A3(const Real x1, const Real x2, const Real x3) {
   else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
     return -b0*std::log(1+R*R)/2.0;
   else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
-    return b0*pitch*0.5*R;
+    return -b0*std::log(1+R*R)/2.0;
   else
     return 0.0;
 }
