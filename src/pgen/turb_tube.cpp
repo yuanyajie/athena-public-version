@@ -221,7 +221,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         if (NON_BAROTROPIC_EOS) {
           if (tube_form==3) {
             Real R=std::sqrt(SQR(pcoord->x1v(i))+SQR(pcoord->x2v(j)));
-            pp=0.5/SQR(1+R*R);
+            pp=0.5*b0*b0/SQR(1+R/R0*R/R0);
           }
           else pp=0.0;
           phydro->u(IEN,k,j,i) = (p0+pp)/gm1+
@@ -266,7 +266,7 @@ Real Aph(const Real R) {
     }
   }
   else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
-    return std::log(1+R*R)/2.0/std::max(R,tiny);
+    return std::log(1+R/R0*R/R0)/2.0/std::max(R,tiny)*R0*R0;
   else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
     return 0.5*R*pitch;
   else 
@@ -309,9 +309,9 @@ Real A3(const Real x1, const Real x2, const Real x3) {
     }
   }
   else if (tube_form==2) // Force-free flux tube with B_phi=1/(1+r^2), Bz=1/(1+r^2)
-    return -b0*std::log(1+R*R)/2.0;
+    return -b0*std::log(1+R/R0*R/R0)/2.0*R0;
   else if (tube_form==3) // MHD tube with B_phi=r/(1+r^2), Bz=const
-    return -b0*std::log(1+R*R)/2.0;
+    return -b0*std::log(1+R/R0*R/R0)/2.0*R0;
   else
     return 0.0;
 }
