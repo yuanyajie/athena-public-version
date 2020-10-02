@@ -41,7 +41,7 @@ std::int64_t rseed; // seed for turbulence power spectrum
 namespace {
 // Parameters which define initial solution -- made global so that they can be shared
 // with functions A1,2,3 which compute vector potentials
-Real R0, b0, lambda, pitch;
+Real R0, b0, lambda, pitch, p0;
 Real j1zero=3.83170597021;
 int tube_form;
 Real tiny=1.0e-6;
@@ -65,6 +65,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   b0 = pin->GetOrAddReal("problem","b0",1.0);
   lambda = pin->GetOrAddReal("problem","lambda",j1zero);
   pitch = pin->GetOrAddReal("problem","pitch",0.0);
+  p0 = pin->GetOrAddReal("problem","p0",1.0);
   tube_form = pin->GetInteger("problem","tube_form");
 
   if (SELF_GRAVITY_ENABLED) {
@@ -107,7 +108,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   a3.NewAthenaArray(nx3, nx2, nx1);
 
   Real gm1 = peos->GetGamma() - 1.0;
-  Real p0 = 1.0;
   Real pp;
 
   int level = loc.level;
